@@ -38,7 +38,13 @@ public:
     static QRgb mode(QRgb v1,QRgb v2,QRgb v3,QRgb v4,QRgb v5,QRgb v6,QRgb v7,QRgb v8,QRgb v9);
     static QImage *median(QImage *image,bool copy);
     static QRgb median(QRgb v1,QRgb v2,QRgb v3,QRgb v4,QRgb v5,QRgb v6,QRgb v7,QRgb v8,QRgb v9);
-    static QImage max(QImage *image,bool copy);
-    static QImage min(QImage *image,bool copy);
+    static QImage *max(QImage *image,bool copy);
+    static QRgb max(QRgb v1,QRgb v2,QRgb v3,QRgb v4,QRgb v5,QRgb v6,QRgb v7,QRgb v8,QRgb v9);
+    static QImage *min(QImage *image,bool copy);
+    static QRgb min(QRgb v1,QRgb v2,QRgb v3,QRgb v4,QRgb v5,QRgb v6,QRgb v7,QRgb v8,QRgb v9);
+    static QImage *expansion(QImage *image);
+    static QImage *compression(QImage *image,int min,int max);
+    static QImage *displacement(QImage *image,int value);
+    static QImage *equalization();
 };
 #endif // IMAGEFUNCTIONS_H

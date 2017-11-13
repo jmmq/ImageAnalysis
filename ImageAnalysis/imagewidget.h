@@ -10,9 +10,12 @@ public:
     explicit ImageWidget(QImage *image,QWidget *parent = nullptr);
     QImage *getImage() const;
     void updateImage(QImage *newImage);
+    bool undo();
+    bool redo();
 protected:
     void paintEvent(QPaintEvent *event);
 private:
+    int memoryIndex;
     QList<QImage *> imageMemory;
     QImage *image;
 signals:

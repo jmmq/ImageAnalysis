@@ -401,7 +401,6 @@ QImage *ImageFunctions::gaussianFilter(QImage *image, bool copy)
     applyMask(newImage,mask,divisor);
     return newImage;
 }
-
 QImage *ImageFunctions::applyMask(QImage *image, int mask[3][3], int divisor)
 {
     QImage *newImage=new QImage(*image);
@@ -465,7 +464,6 @@ QImage *ImageFunctions::applyMask(QImage *image, int mask[3][3], int divisor)
     delete newImage;
     return image;
 }
-
 QImage *ImageFunctions::highPassAlgorithm(QImage *image, int maskX[3][3], int maskY[3][3], int divisor)
 {
     QImage *newImage=new QImage(*image);
@@ -583,7 +581,6 @@ QImage *ImageFunctions::heavyMeanFilter(QImage *image, int N, bool copy)
     applyMask(newImage,mask,divisor);
     return newImage;
 }
-
 QImage *ImageFunctions::sobel(QImage *image, bool copy)
 {
     int divisor=4;
@@ -606,7 +603,6 @@ QImage *ImageFunctions::sobel(QImage *image, bool copy)
     highPassAlgorithm(newImage,maskX,maskY,divisor);
     return newImage;
 }
-
 QImage *ImageFunctions::prewitt(QImage *image, bool copy)
 {
     int divisor=3;
@@ -629,7 +625,6 @@ QImage *ImageFunctions::prewitt(QImage *image, bool copy)
     highPassAlgorithm(newImage,maskX,maskY,divisor);
     return newImage;
 }
-
 QImage *ImageFunctions::roberts(QImage *image, bool copy)
 {
     int divisor=1;
@@ -738,7 +733,6 @@ QRgb ImageFunctions::mode(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6, 
     }
     return values[max];
 }
-
 QImage *ImageFunctions::median(QImage *image, bool copy)
 {
     QImage *newImage=new QImage(*image);
@@ -777,7 +771,6 @@ QImage *ImageFunctions::median(QImage *image, bool copy)
     }
     return newImage;
 }
-
 QRgb ImageFunctions::median(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6, QRgb v7, QRgb v8, QRgb v9)
 {
     QRgb values[9];
@@ -795,7 +788,7 @@ QRgb ImageFunctions::median(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6
     while(swapped){
         swapped=false;
         for(int j=0;j<8;j++){
-            if(values[j]>values[j+1]){
+            if((qRed(values[j])+qBlue(values[j])+qGreen(values[j]))>(qRed(values[j+1])+qBlue(values[j+1])+qGreen(values[j+1]))){
                 swap=values[j];
                 values[j]=values[j+1];
                 values[j+1]=swap;
@@ -804,4 +797,220 @@ QRgb ImageFunctions::median(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6
         }
     }
     return values[4];
+}
+QImage *ImageFunctions::max(QImage *image, bool copy)
+{
+    QImage *newImage=new QImage(*image);
+    if(!copy){
+        QImage *swap;
+        swap=newImage;
+        newImage=image;
+        image=swap;
+    }
+    int ys[3],xs[3];
+    QRgb *imageArray=(QRgb*)image->bits();
+    QRgb *newImageArray=(QRgb*)newImage->bits();
+    for(int y=0;y<image->height();y++){
+        ys[0]=newImage->width()*qMax(y-1,0);
+        ys[1]=newImage->width()*y;
+        ys[2]=newImage->width()*qMin(y+1,image->height()-1);
+        for(int x=0;x<image->width();x++){
+            xs[0]=qMax(x-1,0);
+            xs[1]=x;
+            xs[2]=qMin(x+1,image->width()-1);
+            newImageArray[y*image->width()+x]=max(
+                imageArray[ys[0]+xs[0]],
+                imageArray[ys[0]+xs[1]],
+                imageArray[ys[0]+xs[2]],
+                imageArray[ys[1]+xs[0]],
+                imageArray[ys[1]+xs[1]],
+                imageArray[ys[1]+xs[2]],
+                imageArray[ys[2]+xs[0]],
+                imageArray[ys[2]+xs[1]],
+                imageArray[ys[2]+xs[2]]
+            );
+        }
+    }
+    if(!copy){
+        delete image;
+    }
+    return newImage;
+}
+QRgb ImageFunctions::max(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6, QRgb v7, QRgb v8, QRgb v9)
+{
+    QRgb values[9];
+    values[0]=v1;
+    values[1]=v2;
+    values[2]=v3;
+    values[3]=v4;
+    values[4]=v5;
+    values[5]=v6;
+    values[6]=v7;
+    values[7]=v8;
+    values[8]=v9;
+    int max=0;
+    for(int j=1;j<9;j++){
+        if((qRed(values[j])+qBlue(values[j])+qGreen(values[j]))>(qRed(values[max])+qBlue(values[max])+qGreen(values[max]))){
+            max=j;
+        }
+    }
+    return values[max];
+}
+QImage *ImageFunctions::min(QImage *image, bool copy)
+{
+    QImage *newImage=new QImage(*image);
+    if(!copy){
+        QImage *swap;
+        swap=newImage;
+        newImage=image;
+        image=swap;
+    }
+    int ys[3],xs[3];
+    QRgb *imageArray=(QRgb*)image->bits();
+    QRgb *newImageArray=(QRgb*)newImage->bits();
+    for(int y=0;y<image->height();y++){
+        ys[0]=newImage->width()*qMax(y-1,0);
+        ys[1]=newImage->width()*y;
+        ys[2]=newImage->width()*qMin(y+1,image->height()-1);
+        for(int x=0;x<image->width();x++){
+            xs[0]=qMax(x-1,0);
+            xs[1]=x;
+            xs[2]=qMin(x+1,image->width()-1);
+            newImageArray[y*image->width()+x]=min(
+                imageArray[ys[0]+xs[0]],
+                imageArray[ys[0]+xs[1]],
+                imageArray[ys[0]+xs[2]],
+                imageArray[ys[1]+xs[0]],
+                imageArray[ys[1]+xs[1]],
+                imageArray[ys[1]+xs[2]],
+                imageArray[ys[2]+xs[0]],
+                imageArray[ys[2]+xs[1]],
+                imageArray[ys[2]+xs[2]]
+            );
+        }
+    }
+    if(!copy){
+        delete image;
+    }
+    return newImage;
+}
+QRgb ImageFunctions::min(QRgb v1, QRgb v2, QRgb v3, QRgb v4, QRgb v5, QRgb v6, QRgb v7, QRgb v8, QRgb v9)
+{
+    QRgb values[9];
+    values[0]=v1;
+    values[1]=v2;
+    values[2]=v3;
+    values[3]=v4;
+    values[4]=v5;
+    values[5]=v6;
+    values[6]=v7;
+    values[7]=v8;
+    values[8]=v9;
+    int min=0;
+    for(int j=1;j<9;j++){
+        if((qRed(values[j])+qBlue(values[j])+qGreen(values[j]))<(qRed(values[min])+qBlue(values[min])+qGreen(values[min]))){
+            min=j;
+        }
+    }
+    return values[min];
+}
+
+QImage *ImageFunctions::expansion(QImage *image)
+{
+    QImage *grayImage=toGrayScale(image);
+    QRgb *grayImageBits=(QRgb *)grayImage->bits();
+    QList<int> *histogramList=grayHistogramList(image);
+    int grayImageMin,grayImageMax;
+    for(int i=0;i<256;i++){
+        if(histogramList->at(i)>0){
+            grayImageMin=i;
+            break;
+        }
+    }
+    for(int i=255;i>-1;i--){
+        if(histogramList->at(i)>0){
+            grayImageMax=i;
+            break;
+        }
+    }
+    int width=image->width();
+    int height=image->height();
+    QImage *newImage=new QImage(*grayImage);
+    QRgb *newImageBits=(QRgb *)newImage->bits();
+    int newGrayValue;
+    for(int y=0;y<height;y++){
+        for(int x=0;x<width;x++){
+            if(grayImageMax>grayImageMin){
+                newGrayValue=(qRed(grayImageBits[y*width+x])-grayImageMin)*255/(grayImageMax-grayImageMin);
+            }else{
+                newGrayValue=(qRed(grayImageBits[y*width+x])-grayImageMin)*255;
+            }
+            newImageBits[y*width+x]=qRgb(newGrayValue,newGrayValue,newGrayValue);
+        }
+    }
+    return newImage;
+}
+
+QImage *ImageFunctions::compression(QImage *image, int min, int max)
+{
+    QImage *grayImage=toGrayScale(image);
+    QRgb *grayImageBits=(QRgb *)grayImage->bits();
+    QList<int> *histogramList=grayHistogramList(image);
+    int grayImageMin,grayImageMax;
+    for(int i=0;i<256;i++){
+        if(histogramList->at(i)>0){
+            grayImageMin=i;
+            break;
+        }
+    }
+    for(int i=255;i>-1;i--){
+        if(histogramList->at(i)>0){
+            grayImageMax=i;
+            break;
+        }
+    }
+    int width=image->width();
+    int height=image->height();
+    QImage *newImage=new QImage(*grayImage);
+    QRgb *newImageBits=(QRgb *)newImage->bits();
+    int newGrayValue;
+    for(int y=0;y<height;y++){
+        for(int x=0;x<width;x++){
+            if(grayImageMax>grayImageMin){
+                newGrayValue=(qRed(grayImageBits[y*width+x])-grayImageMin)*(max-min)/(grayImageMax-grayImageMin)+min;
+            }else{
+                newGrayValue=(qRed(grayImageBits[y*width+x])-grayImageMin)*(max-min)+min;
+            }
+            newImageBits[y*width+x]=qRgb(newGrayValue,newGrayValue,newGrayValue);
+        }
+    }
+    return newImage;
+}
+
+QImage *ImageFunctions::displacement(QImage *image, int value)
+{
+    QImage *grayImage=toGrayScale(image);
+    QRgb *grayImageBits=(QRgb *)grayImage->bits();
+    int width=image->width();
+    int height=image->height();
+    QImage *newImage=new QImage(*grayImage);
+    QRgb *newImageBits=(QRgb *)newImage->bits();
+    int newGrayValue;
+    for(int y=0;y<height;y++){
+        for(int x=0;x<width;x++){
+            newGrayValue=(qRed(grayImageBits[y*width+x])+value);
+            if(newGrayValue>255){
+                newGrayValue=255;
+            }else if(newGrayValue<0){
+                newGrayValue=0;
+            }
+            newImageBits[y*width+x]=qRgb(newGrayValue,newGrayValue,newGrayValue);
+        }
+    }
+    return newImage;
+}
+
+QImage *ImageFunctions::equalization()
+{
+
 }

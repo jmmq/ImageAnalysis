@@ -30,6 +30,8 @@ void Application::designMenu(){
     fileMenu->addAction("Guardar imagen",this,&Application::saveImage,QKeySequence(Qt::CTRL+Qt::Key_S));
     mainWindow->menuBar()->addMenu(fileMenu);
     QMenu *toolsMenu=new QMenu("Herramientas");
+    toolsMenu->addAction("Deshacer",this,&Application::undo,QKeySequence(Qt::CTRL+Qt::Key_Z));
+    toolsMenu->addAction("Rehacer",this,&Application::redo,QKeySequence(Qt::CTRL+Qt::Key_Y));
     toolsMenu->addAction("A escala de grises",this,&Application::toGrayScale,QKeySequence(Qt::CTRL+Qt::Key_G));
     toolsMenu->addAction("Binarizar",this,&Application::binarize,QKeySequence(Qt::CTRL+Qt::Key_B));
     toolsMenu->addAction("Binarizar canal",this,&Application::binarizeChannel,QKeySequence(Qt::CTRL+Qt::Key_I));
@@ -49,17 +51,21 @@ void Application::designMenu(){
     lowPassFiltersMenu->addAction("Promedio estándar",this,&Application::meanFilter);
     lowPassFiltersMenu->addAction("Promedio estándar pesado",this,&Application::heavyMeanFilter);
     lowPassFiltersMenu->addAction("Gausiano",this,&Application::gaussianFilter);
-
     QMenu *highPassFiltersMenu=filtersMenu->addMenu("Pasa altas");
     highPassFiltersMenu->addAction("Sobel",this,&Application::sobel);
     highPassFiltersMenu->addAction("Prewitt",this,&Application::prewitt);
     highPassFiltersMenu->addAction("Roberts",this,&Application::roberts);
     highPassFiltersMenu->addAction("Pixel difference",this,&Application::pixelDifference);
-
     QMenu *noLinealFiltersMenu=filtersMenu->addMenu("No lineales");
     noLinealFiltersMenu->addAction("Moda",this,&Application::mode);
     noLinealFiltersMenu->addAction("Mediana",this,&Application::median);
-
+    noLinealFiltersMenu->addAction("Max",this,&Application::max);
+    noLinealFiltersMenu->addAction("Min",this,&Application::min);
+    QMenu *contrastEnhacementMenu=toolsMenu->addMenu("Mejora de contraste");
+    contrastEnhacementMenu->addAction("Expansión",this,&Application::expansion);
+    contrastEnhacementMenu->addAction("Compresión",this,&Application::compression);
+    contrastEnhacementMenu->addAction("Desplazamiento",this,&Application::displacement);
+    contrastEnhacementMenu->addAction("Ecualización");
     //QAction arithmeticAction=new QAction("Operaciones aritméticas");
     //toolsMenu->addAction();
     mainWindow->menuBar()->addMenu(toolsMenu);
@@ -209,7 +215,6 @@ Application::WindowTarget Application::selectWindowTarget()
 void Application::updateWindow(QMdiSubWindow *subWindow)
 {
     QScrollArea *scrollArea=qobject_cast<QScrollArea *>(subWindow->widget());
-    ImageWidget *imageWidget=qobject_cast<ImageWidget *>(scrollArea->widget());
     scrollArea->update();
     subWindow->update();
 }
@@ -941,6 +946,189 @@ void Application::median()
         return;
     }
     QImage *newImage=ImageFunctions::median(imageWidget->getImage(),true);
+    if(windowTarget==New){
+        createSubWindow(selectedWindow->windowFilePath(),newImage);
+    }else{
+        imageWidget->updateImage(newImage);
+        updateWindow(selectedWindow);
+    }
+}
+
+void Application::max()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    WindowTarget windowTarget=selectWindowTarget();
+    if(windowTarget==None){
+        return;
+    }
+    QImage *newImage=ImageFunctions::max(imageWidget->getImage(),true);
+    if(windowTarget==New){
+        createSubWindow(selectedWindow->windowFilePath(),newImage);
+    }else{
+        imageWidget->updateImage(newImage);
+        updateWindow(selectedWindow);
+    }
+}
+
+void Application::min()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    WindowTarget windowTarget=selectWindowTarget();
+    if(windowTarget==None){
+        return;
+    }
+    QImage *newImage=ImageFunctions::min(imageWidget->getImage(),true);
+    if(windowTarget==New){
+        createSubWindow(selectedWindow->windowFilePath(),newImage);
+    }else{
+        imageWidget->updateImage(newImage);
+        updateWindow(selectedWindow);
+    }
+}
+void Application::undo()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    if(imageWidget->undo()){
+        updateWindow(selectedWindow);
+    }else{
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Advertencia");
+        msgBox.setText("No hay nada que deshacer");
+        msgBox.exec();
+    }
+}
+void Application::redo()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    if(imageWidget->redo()){
+        updateWindow(selectedWindow);
+    }else{
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Advertencia");
+        msgBox.setText("No hay nada que rehacer");
+        msgBox.exec();
+    }
+}
+
+void Application::expansion()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    WindowTarget windowTarget=selectWindowTarget();
+    if(windowTarget==None){
+        return;
+    }
+    QImage *newImage=ImageFunctions::expansion(imageWidget->getImage());
+    if(windowTarget==New){
+        createSubWindow(selectedWindow->windowFilePath(),newImage);
+    }else{
+        imageWidget->updateImage(newImage);
+        updateWindow(selectedWindow);
+    }
+}
+
+void Application::compression()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    bool ok;
+    int min=QInputDialog::getInt(mainWindow, tr("Compresión"),
+                                       tr("Valor mínimo:"),0,0, 255, 1, &ok);
+    if(!ok){
+        return;
+    }
+    int max=QInputDialog::getInt(mainWindow, tr("Compresión"),
+                                       tr("Valor máximo:"), 255, min, 255, 1, &ok);
+    if(!ok){
+        return;
+    }
+    WindowTarget windowTarget=selectWindowTarget();
+    if(windowTarget==None){
+        return;
+    }
+    QImage *newImage=ImageFunctions::compression(imageWidget->getImage(),min,max);
+    if(windowTarget==New){
+        createSubWindow(selectedWindow->windowFilePath(),newImage);
+    }else{
+        imageWidget->updateImage(newImage);
+        updateWindow(selectedWindow);
+    }
+}
+
+void Application::displacement()
+{
+    QMdiSubWindow* selectedWindow;
+    selectedWindow=mdiArea->activeSubWindow();
+    if(selectedWindow==0){
+        noImageSelectedWarning();
+        return;
+    }
+    ImageWidget *imageWidget=imageWidgetFromWindow(selectedWindow);
+    if(imageWidget==nullptr){
+        return;
+    }
+    bool ok;
+    int value=QInputDialog::getInt(mainWindow,tr("Desplazamiento"),tr("Valor:"),0,-255,255,1, &ok);
+    if(!ok){
+        return;
+    }
+    WindowTarget windowTarget=selectWindowTarget();
+    if(windowTarget==None){
+        return;
+    }
+    QImage *newImage=ImageFunctions::displacement(imageWidget->getImage(),value);
     if(windowTarget==New){
         createSubWindow(selectedWindow->windowFilePath(),newImage);
     }else{

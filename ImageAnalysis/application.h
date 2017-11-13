@@ -1,3 +1,4 @@
+
 #ifndef APPICATION_H
 #define APPICATION_H
 #include <QObject>
@@ -63,6 +64,12 @@ public slots:
     void pixelDifference();
     void mode();
     void median();
-
+    void max();
+    void min();
+    void undo();
+    void redo();
+    void expansion();
+    void compression();
+    void displacement();
 };
 #endif // APPICATION_H
